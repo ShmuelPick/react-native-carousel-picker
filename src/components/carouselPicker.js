@@ -5,7 +5,7 @@ import { ScrollView, View, Text, TouchableOpacity, StyleSheet } from "react-nati
 /**
  *
  */
-const Item = ({
+export const Item = ({
   onPress,
   backgroundColor,
   isSelected,
@@ -39,7 +39,7 @@ const Item = ({
 /**
  *
  */
-const SelectedMark = ({
+export const SelectedMark = ({
   height,
   position,
   backgroundColor,
