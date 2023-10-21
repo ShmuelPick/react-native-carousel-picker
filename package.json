@@ -1,6 +1,6 @@
 {
   "name": "react-native-carousel-picker",
-  "version": "1.0.10",
+  "version": "1.1.0",
   "description": "A cross-platform wheel picker component for React Native in pure Javascript.",
   "main": "src/index.js",
   "scripts": {
@@ -12,8 +12,15 @@
   },
   "peerDependencies": {
     "react": "*",
-    "react-native": "*"
+    "react-native": "*",
+    "prop-types": "^15.7.2"
+  },
+  "devDependencies": {
+    "prop-types": "^15.7.2"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "prop-types": "^15.8.1"
+  }
 }

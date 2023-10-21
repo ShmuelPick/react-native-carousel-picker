@@ -1,43 +1,42 @@
-import React from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { ScrollView, View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useCallback, useEffect, useRef, createRef } from 'react';
+import PropTypes from 'prop-types';
+import { ScrollView, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
-/**
- *
- */
-export const Item = ({
-  onPress,
-  backgroundColor,
-  isSelected,
-  content,
-  height,
-  textStyle,
-  selectedTextStyle,
-  unselectedTextStyle,
-}) => {
-    const touchableAccessibilityLabel = `picker_item:` + content;
-    const selectedStateStyle = isSelected
-        ? selectedTextStyle
-        : unselectedTextStyle;
-    return (
-        <TouchableOpacity
-            accessibilityLabel={touchableAccessibilityLabel}
-            testID={"container-item"}
-            style={{ height, backgroundColor, justifyContent: "center" }}
-            onPress={onPress}
-        >
-            <Text
-                testID={"text-item"}
-                style={[styles.defaultTextItem, textStyle, selectedStateStyle]}
-            >
-                {content}
-            </Text>
-        </TouchableOpacity>
-    );
+// Helper constants
+const defaultStyles = {
+  SelectedMarkBackgroundColor: '#D8D8D8',
+  SelectedMarkBorderRadius: 8,
+  MarginHorizontal: 20,
+  ItemHeight: 40,
+  CountVisibleItems: 4,
+  SelectedTextStyle: { fontWeight: 'bold', color: '#37474F' },
+  UnselectedTextStyle: { fontWeight: 'normal', color: '#ADADAD' },
+};
+
+const SCROLLER_KEY_PREFIX = {
+  top: 'topScroller',
+  bottom: 'bottomScroller',
+  item: 'item',
 };
 
 /**
- *
+ * A utility function to create a list of JSX elements based on a component, prefix, and props.
+ */
+const createScrollElements = (Component, keyPrefix, props, count) =>
+    Array.from({ length: count }, (_, index) => (
+        <Component key={`${keyPrefix}${index}`} testID={keyPrefix} {...props} />
+    ));
+
+/**
+ * A spacer component to help with scroll snapping.
+ */
+export const Scroller = ({ height }) => <View style={{ height }} testID="scrollerView" />;
+Scroller.propTypes = {
+  height: PropTypes.number.isRequired,
+};
+
+/**
+ * Component to indicate the currently selected item.
  */
 export const SelectedMark = ({
   height,
@@ -45,191 +44,224 @@ export const SelectedMark = ({
   backgroundColor,
   borderRadius,
   marginHorizontal,
-}) => {
-    const selectedMarkStyle = {
-        height,
-        backgroundColor,
-        borderRadius,
-        top: position,
-        left: marginHorizontal,
-        right: marginHorizontal,
-    };
-
-    return (
-        <View
-            testID={"selectedMarkView"}
-            style={[styles.absolute, selectedMarkStyle]}
-        />
-    );
-};
-
-/**
- * A group of default values to simplify the use of the picker
- */
-export const defaultSelectedMarkBackgroundColor = "#D8D8D8";
-export const defaultSelectedMarkBorderRadius = 8;
-export const defaultMarginHorizontal = 20;
-export const defaultItemHeight = 40;
-export const defaultCountVisibleItems = 4;
-export const defaultSelectedMarkHeight = defaultItemHeight;
-export const defaultSelectedTextStyle = {
-    fontWeight: "bold",
-    color: "#37474F",
-};
-export const defaultUnselectedTextStyle = {
-    fontWeight: "normal",
-    color: "#ADADAD",
-};
-
-/**
- * A scroller is an empty component that enable to activate scroll
- */
-export const Scroller = ({ height }) => {
-    return <View style={{ height }} testID={"scrollerView"} />;
-};
-/**
- * Define a unique key for each scroll child
- * @param {*} ComponentClass The component we want to render
- * @param {*} keyPrefix The key prefix that will be combined with index of rendered the scroll child
- */
-const mapScrollChild = (ComponentClass, keyPrefix) => (props) => (index) => (
-    <ComponentClass key={`${keyPrefix}${index}`} testID={keyPrefix} {...props} />
+}) => (
+    <View
+        testID="selectedMarkView"
+        style={[
+          styles.absolute,
+          {
+            height,
+            backgroundColor,
+            borderRadius,
+            top: position,
+            left: marginHorizontal,
+            right: marginHorizontal,
+          },
+        ]}
+    />
 );
-const defaultRenderTopSpaceScroller = mapScrollChild(Scroller, "topScroller");
-const defaultRenderBottomSpaceScroller = mapScrollChild(
-    Scroller,
-    "bottomScroller",
-);
-const defaultRenderVisibleItemAtIndex = mapScrollChild(Item, "item");
-
-const getSelectedMarkPosition = (countVisibleItems, height, itemHeight) => {
-    const hasEvenVisibleItems = countVisibleItems % 2 === 0;
-    return hasEvenVisibleItems ? height / 2 : (height + itemHeight) / 2;
+SelectedMark.propTypes = {
+  height: PropTypes.number.isRequired,
+  position: PropTypes.number.isRequired,
+  backgroundColor: PropTypes.string.isRequired,
+  borderRadius: PropTypes.number.isRequired,
+  marginHorizontal: PropTypes.number.isRequired,
 };
-const getVisibleHeight = (itemHeight, countVisibleItems) =>
-    itemHeight * countVisibleItems;
 
 /**
- *
+ * Individual item component in the carousel picker.
+ */
+export const Item = ({
+  onPress,
+  content,
+  isSelected,
+  height,
+  textStyle,
+  selectedTextStyle,
+  unselectedTextStyle,
+}) => (
+    <TouchableOpacity
+        accessibilityLabel={`picker_item:${content}`}
+        testID="container-item"
+        style={{ height, justifyContent: 'center' }}
+        onPress={onPress}
+    >
+      <Text
+          testID="text-item"
+          style={[
+            styles.defaultTextItem,
+            textStyle,
+            isSelected ? selectedTextStyle : unselectedTextStyle,
+          ]}
+      >
+        {content}
+      </Text>
+    </TouchableOpacity>
+);
+Item.propTypes = {
+  onPress: PropTypes.func.isRequired,
+  content: PropTypes.string.isRequired,
+  isSelected: PropTypes.bool.isRequired,
+  height: PropTypes.number.isRequired,
+  textStyle: PropTypes.object,
+  selectedTextStyle: PropTypes.object,
+  unselectedTextStyle: PropTypes.object,
+};
+
+/**
+ * Main carousel picker component.
  */
 const CarouselPicker = ({
   onSelected = () => {},
   backgroundColor,
   itemTextStyle,
-  selectedItemTextStyle = defaultSelectedTextStyle,
-  unselectedItemTextStyle = defaultUnselectedTextStyle,
-  renderTopSpaceScroller = defaultRenderTopSpaceScroller,
-  renderBottomSpaceScroller = defaultRenderBottomSpaceScroller,
-  renderVisibleItemAtIndex = defaultRenderVisibleItemAtIndex,
-  itemHeight = defaultItemHeight,
-  countVisibleItems = defaultCountVisibleItems,
-  items = [],
-  selectedIndex = 0,
-  SelectedMarkBackgroundColor = defaultSelectedMarkBackgroundColor,
-  SelectedMarkBorderRadius = defaultSelectedMarkBorderRadius,
-  SelectedMarkMarginHorizontal = defaultMarginHorizontal,
-  SelectedMarkHeight = defaultSelectedMarkHeight,
+  selectedItemTextStyle = defaultStyles.SelectedTextStyle,
+  unselectedItemTextStyle = defaultStyles.UnselectedTextStyle,
+  itemHeight = defaultStyles.ItemHeight,
+  countVisibleItems = defaultStyles.CountVisibleItems,
+  items = {},
+  selectedIndices = {},
+  SelectedMarkBackgroundColor = defaultStyles.SelectedMarkBackgroundColor,
+  SelectedMarkBorderRadius = defaultStyles.SelectedMarkBorderRadius,
+  SelectedMarkMarginHorizontal = defaultStyles.MarginHorizontal,
+  SelectedMarkHeight = defaultStyles.ItemHeight,
 }) => {
-    const [scrollPosition, setScrollPosition] = useState(
-        selectedIndex * itemHeight,
-    );
-    const [isStartDragingScroll, setIsStartDragingScroll] = useState(false);
-    const height = getVisibleHeight(itemHeight, countVisibleItems);
-    const SelectedMarkPosition = getSelectedMarkPosition(
-        countVisibleItems,
-        height,
-        itemHeight,
-    );
-    const countTopScrollers = Math.trunc(SelectedMarkPosition / itemHeight);
-    const countBottomScrollers = countVisibleItems - (countTopScrollers + 1);
+  const scrollViewRefs = useRef(
+      Object.keys(items).reduce((acc, column) => {
+        acc[column] = createRef();
+        return acc;
+      }, {}),
+  );
+  const height = itemHeight * countVisibleItems;
+  const SelectedMarkPosition =
+      countVisibleItems % 2 === 0 ? height / 2 : (height + itemHeight) / 2;
 
-    let scrollViewRef = useRef(null);
+  useEffect(() => {
+    for (let column in items) {
+      const ref = scrollViewRefs.current[column];
+      if (ref && ref.current) {
+        const position = (selectedIndices[column] || 0) * itemHeight;
+        ref.current.scrollTo({ x: 0, y: position, animated: true });
+      }
+    }
+  }, []);
 
-    useEffect(() => {
-        if (!isStartDragingScroll) {
-            const position = selectedIndex * itemHeight;
-            scrollViewRef.current.scrollTo({ x: 0, y: position, animated: true });
+  const handleScroll = useCallback(
+      (column) => (event) => {
+        // Determine the base index based on the scroll position
+        const y = event.nativeEvent.contentOffset.y;
+        const scrolledItemFraction = y / itemHeight;
+        const isPastHalfway = y % itemHeight > itemHeight / 2;
+        let index = isPastHalfway
+            ? Math.ceil(scrolledItemFraction)
+            : Math.floor(scrolledItemFraction);
+
+        // Ensure index is within bounds
+        const columnValues = items[column];
+        index = Math.max(0, Math.min(index, columnValues.length - 1));
+
+        if (selectedIndices[column] !== index) {
+          onSelected(column, index);
         }
-    }, [selectedIndex, isStartDragingScroll]);
+      },
+      [itemHeight, selectedIndices, onSelected],
+  );
 
-    const doScroll = useCallback(
-        ({ nativeEvent }) => {
-            const position = nativeEvent.contentOffset.y;
-            setScrollPosition(position);
-        },
-        [itemHeight],
-    );
+  const handleItemPress = useCallback(
+      (column, index) => {
+        onSelected(column, index);
 
-    const doStartDragScroll = useCallback(() => {
-        setIsStartDragingScroll(true);
-    }, []);
-
-    const doEndDragScroll = useCallback(() => {
-        let index = Math.round(scrollPosition / itemHeight);
-
-        if (index >= items.length) {
-            index = items.length - 1;
-        } else if (index < 0) {
-            index = 0;
+        // Ensure ScrollView ref exists
+        const ref = scrollViewRefs.current[column];
+        if (ref && ref.current) {
+          const position = index * itemHeight;
+          ref.current.scrollTo({ x: 0, y: position, animated: true });
         }
+      },
+      [onSelected, itemHeight],
+  );
 
-        onSelected(index);
-        setIsStartDragingScroll(false);
-    }, [itemHeight, scrollPosition]);
-
-    return (
-        <View style={{ height, backgroundColor }} testID={"container"}>
-            <SelectedMark
-                testID={"topSelectedMark"}
-                height={SelectedMarkHeight}
-                position={SelectedMarkPosition}
-                backgroundColor={SelectedMarkBackgroundColor}
-                borderRadius={SelectedMarkBorderRadius}
-                marginHorizontal={SelectedMarkMarginHorizontal}
-            />
-            <ScrollView
-                ref={scrollViewRef}
-                testID={"scrollView"}
-                snapToInterval={itemHeight}
-                snapToStart={false}
-                onScrollBeginDrag={doStartDragScroll}
-                onScrollEndDrag={doEndDragScroll}
-                onScroll={doScroll}
-                snapToAlignment={undefined}
-                scrollEventThrottle={16}
-                showsVerticalScrollIndicator={false}
-                decelerationRate={"fast"}
-            >
-                {[...Array(countTopScrollers).keys()].map(
-                    renderTopSpaceScroller({ height: itemHeight }),
+  return (
+      <View style={{ height, backgroundColor }} testID="container">
+        <SelectedMark
+            height={SelectedMarkHeight}
+            position={SelectedMarkPosition}
+            backgroundColor={SelectedMarkBackgroundColor}
+            borderRadius={SelectedMarkBorderRadius}
+            marginHorizontal={SelectedMarkMarginHorizontal}
+        />
+        <View style={styles.carouselContainer}>
+          {Object.entries(items).map(([column, values]) => (
+              <ScrollView
+                  key={column}
+                  ref={scrollViewRefs.current[column]}
+                  testID="scrollView"
+                  snapToInterval={itemHeight}
+                  onMomentumScrollEnd={handleScroll(column)}
+                  showsVerticalScrollIndicator={false}
+                  decelerationRate="fast"
+                  style={{ flex: 1 }}
+              >
+                {createScrollElements(
+                    Scroller,
+                    SCROLLER_KEY_PREFIX.top,
+                    { height: itemHeight },
+                    Math.round(SelectedMarkPosition / itemHeight),
                 )}
-                {items.map((content, index) =>
-                    renderVisibleItemAtIndex({
-                        onPress: () => onSelected(index),
-                        isSelected: index === selectedIndex,
-                        height: itemHeight,
-                        content,
-                        textStyle: itemTextStyle,
-                        selectedTextStyle: selectedItemTextStyle,
-                        unselectedTextStyle: unselectedItemTextStyle,
-                    })(index),
+                {values.map((content, index) => (
+                    <Item
+                        key={`${SCROLLER_KEY_PREFIX.item}${index}`}
+                        onPress={() => handleItemPress(column, index)}
+                        isSelected={index === selectedIndices[column]}
+                        height={itemHeight}
+                        content={content}
+                        textStyle={itemTextStyle}
+                        selectedTextStyle={selectedItemTextStyle}
+                        unselectedTextStyle={unselectedItemTextStyle}
+                    />
+                ))}
+                {createScrollElements(
+                    Scroller,
+                    SCROLLER_KEY_PREFIX.bottom,
+                    { height: itemHeight },
+                    countVisibleItems - Math.round(SelectedMarkPosition / itemHeight) - 1,
                 )}
-                {[...Array(countBottomScrollers).keys()].map(
-                    renderBottomSpaceScroller({ height: itemHeight }),
-                )}
-            </ScrollView>
+              </ScrollView>
+          ))}
         </View>
-    );
+      </View>
+  );
+};
+CarouselPicker.propTypes = {
+  onSelected: PropTypes.func,
+  backgroundColor: PropTypes.string,
+  itemTextStyle: PropTypes.object,
+  selectedItemTextStyle: PropTypes.object,
+  unselectedItemTextStyle: PropTypes.object,
+  itemHeight: PropTypes.number,
+  countVisibleItems: PropTypes.number,
+  items: PropTypes.object.isRequired,
+  selectedIndices: PropTypes.object.isRequired,
+  SelectedMarkBackgroundColor: PropTypes.string,
+  SelectedMarkBorderRadius: PropTypes.number,
+  SelectedMarkMarginHorizontal: PropTypes.number,
+  SelectedMarkHeight: PropTypes.number,
 };
 
 const styles = StyleSheet.create({
-    defaultTextItem: {
-        textAlign: 'center',
-        textAlignVertical: 'center'
-    },
-    absolute: {
-        position: 'absolute',
-    },
+  defaultTextItem: {
+    textAlign: 'center',
+    textAlignVertical: 'center',
+  },
+  absolute: {
+    position: 'absolute',
+  },
+  carouselContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    width: '100%',
+  },
 });
 
 export default CarouselPicker;
