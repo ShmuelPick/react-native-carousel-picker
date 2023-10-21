@@ -252,6 +252,7 @@ const styles = StyleSheet.create({
   defaultTextItem: {
     textAlign: 'center',
     textAlignVertical: 'center',
+      paddingHorizontal: 5,
   },
   absolute: {
     position: 'absolute',
@@ -261,6 +262,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     width: '100%',
+    paddingHorizontal: 20,
   },
 });
 
