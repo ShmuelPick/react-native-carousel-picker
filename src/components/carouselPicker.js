@@ -1,7 +1,67 @@
+import React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ScrollView, View } from "react-native";
-import SelectedMark from "./selectedMark";
-import Item from "./item";
+import { ScrollView, View, Text, TouchableOpacity, StyleSheet } from "react-native";
+
+/**
+ *
+ */
+const Item = ({
+  onPress,
+  backgroundColor,
+  isSelected,
+  content,
+  height,
+  textStyle,
+  selectedTextStyle,
+  unselectedTextStyle,
+}) => {
+    const touchableAccessibilityLabel = `picker_item:` + content;
+    const selectedStateStyle = isSelected
+        ? selectedTextStyle
+        : unselectedTextStyle;
+    return (
+        <TouchableOpacity
+            accessibilityLabel={touchableAccessibilityLabel}
+            testID={"container-item"}
+            style={{ height, backgroundColor, justifyContent: "center" }}
+            onPress={onPress}
+        >
+            <Text
+                testID={"text-item"}
+                style={[styles.defaultTextItem, textStyle, selectedStateStyle]}
+            >
+                {content}
+            </Text>
+        </TouchableOpacity>
+    );
+};
+
+/**
+ *
+ */
+const SelectedMark = ({
+  height,
+  position,
+  backgroundColor,
+  borderRadius,
+  marginHorizontal,
+}) => {
+    const selectedMarkStyle = {
+        height,
+        backgroundColor,
+        borderRadius,
+        top: position,
+        left: marginHorizontal,
+        right: marginHorizontal,
+    };
+
+    return (
+        <View
+            testID={"selectedMarkView"}
+            style={[styles.absolute, selectedMarkStyle]}
+        />
+    );
+};
 
 /**
  * A group of default values to simplify the use of the picker
@@ -161,5 +221,15 @@ const CarouselPicker = ({
         </View>
     );
 };
+
+const styles = StyleSheet.create({
+    defaultTextItem: {
+        textAlign: 'center',
+        textAlignVertical: 'center'
+    },
+    absolute: {
+        position: 'absolute',
+    },
+});
 
 export default CarouselPicker;
