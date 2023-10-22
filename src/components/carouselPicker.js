@@ -8,6 +8,7 @@ const defaultStyles = {
   SelectedMarkBorderRadius: 8,
   MarginHorizontal: 20,
   ItemHeight: 40,
+  containerStyle: {},
   CountVisibleItems: 4,
   SelectedTextStyle: { fontWeight: 'bold', color: '#37474F' },
   UnselectedTextStyle: { fontWeight: 'normal', color: '#ADADAD' },
@@ -115,6 +116,7 @@ const CarouselPicker = ({
   onSelected = () => {},
   backgroundColor,
   itemTextStyle,
+  containerStyle,
   selectedItemTextStyle = defaultStyles.SelectedTextStyle,
   unselectedItemTextStyle = defaultStyles.UnselectedTextStyle,
   itemHeight = defaultStyles.ItemHeight,
@@ -182,7 +184,7 @@ const CarouselPicker = ({
   );
 
   return (
-      <View style={{ height, backgroundColor }} testID="container">
+      <View style={[containerStyle, { height, backgroundColor }]} testID="container">
         <SelectedMark
             height={SelectedMarkHeight}
             position={SelectedMarkPosition}
@@ -236,6 +238,7 @@ CarouselPicker.propTypes = {
   onSelected: PropTypes.func,
   backgroundColor: PropTypes.string,
   itemTextStyle: PropTypes.object,
+  containerStyle: PropTypes.object,
   selectedItemTextStyle: PropTypes.object,
   unselectedItemTextStyle: PropTypes.object,
   itemHeight: PropTypes.number,
