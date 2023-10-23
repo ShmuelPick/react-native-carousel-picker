@@ -1,6 +1,6 @@
 # React Native Carousel Picker
 
-A cross-platform (Android & iOS) carousel picker component for React Native in pure Javascript.
+A cross-platform carousel picker component for React Native in pure Javascript. (iOS wheel Picker for Android & iOS)
 
 ## Features
 
