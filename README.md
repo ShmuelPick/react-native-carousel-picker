@@ -109,6 +109,10 @@ Define the size of the selected mark. Default value is `1`.
 
 Define the text style of each displayed item. Default value is `undefined`.
 
+##### containerStyle (`optional`)
+
+Define the container style of the displayed picker. Default value is `{}`.
+
 ##### selectedItemTextStyle (`optional`)
 
 Define the text style of each selected item. Default value is `{ fontWeight: 'bold', color: '#37474F' }`.
