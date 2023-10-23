@@ -136,7 +136,7 @@ const CarouselPicker = ({
   );
   const height = itemHeight * countVisibleItems;
   const SelectedMarkPosition =
-      countVisibleItems % 2 === 0 ? height / 2 : (height + itemHeight) / 2;
+      countVisibleItems % 2 === 0 ? height / 2 : (height - itemHeight) / 2;
 
   useEffect(() => {
     for (let column in items) {
