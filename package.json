@@ -1,9 +1,8 @@
 {
   "name": "react-native-carousel-picker",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "A cross-platform wheel picker component for React Native in pure Javascript.",
   "main": "src/index.js",
-  "types": "react-native-carousel-picker.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
