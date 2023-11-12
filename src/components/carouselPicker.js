@@ -80,6 +80,7 @@ export const Item = ({
     textStyle,
     selectedTextStyle,
     unselectedTextStyle,
+    renderText,
 }) => (
     <TouchableOpacity
         accessibilityLabel={`picker_item:${content}`}
@@ -87,7 +88,7 @@ export const Item = ({
         style={{ height, justifyContent: 'center' }}
         onPress={onPress}
     >
-        <Text
+        {renderText ? renderText(content) : <Text
             testID="text-item"
             style={[
                 styles.defaultTextItem,
@@ -97,6 +98,7 @@ export const Item = ({
         >
             {content}
         </Text>
+        }
     </TouchableOpacity>
 );
 Item.propTypes = {
@@ -127,6 +129,7 @@ const CarouselPicker = ({
     selectedMarkBorderRadius = defaultStyles.selectedMarkBorderRadius,
     selectedMarkMarginHorizontal = defaultStyles.selectedMarkMarginHorizontal,
     selectedMarkHeight = defaultStyles.itemHeight,
+    renderText
 }) => {
     const scrollViewRefs = useRef(
         Object.keys(items).reduce((acc, column) => {
@@ -222,6 +225,7 @@ const CarouselPicker = ({
                                 textStyle={itemTextStyle}
                                 selectedTextStyle={selectedItemTextStyle}
                                 unselectedTextStyle={unselectedItemTextStyle}
+                                renderText={renderText}
                             />
                         ))}
                         {createScrollElements(
@@ -251,6 +255,7 @@ CarouselPicker.propTypes = {
     selectedMarkBorderRadius: PropTypes.number,
     selectedMarkMarginHorizontal: PropTypes.number,
     selectedMarkHeight: PropTypes.number,
+    renderText: PropTypes.func,
 };
 
 const styles = StyleSheet.create({
